@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 env:
   PACK_METHOD: "Anykernel3" # Anykernel3 need SOURCE and BRANCH, MKBOOTIMG needn't it.
-  HOOK_METHOD: "normal" # manual hook method,can choice syscall and normal.
+  HOOK_METHOD: "syscall" # manual hook method,can choice syscall and normal.
   HOOK_OLDER: "false" # contain backport older patch and syscall older patch.
   KPM_ENABLE: "true" # Only use it for SukiSU-Ultra.
   KPM_PATCH_SOURCE: "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU_patch/refs/heads/main/kpm/patch_linux" # patch exec file source -> raw.githubusercontent.com/Test/Test/patch .
@@ -158,7 +158,13 @@ jobs:
           if [[ -n "${{ env.DEFCONFIG_SOURCE }}" ]]; then
             wget ${{ env.DEFCONFIG_SOURCE }} -O device_kernel/arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
           fi
+
+          # Get KernelSU Version and Kernel Version
+
+          KERNEL_VERSION=$(head -n 3 $GITHUB_WORKSPACE/device_kernel/Makefile | grep -E 'VERSION|PATCHLEVEL' | awk '{print $3}' | paste -sd '.')
           echo "KERNEL_VERSION=$(head -n 3 device_kernel/Makefile | grep -E 'VERSION|PATCHLEVEL' | awk '{print $3}' | paste -sd '.')" >> $GITHUB_ENV
+          echo "FIRST_VERSION=$(echo "$KERNEL_VERSION" | awk -F '.' '{print $1}')" >> $GITHUB_ENV
+          echo "SECOND_VERSION=$(echo "$KERNEL_VERSION" | awk -F '.' '{print $2}')" >> $GITHUB_ENV
 
       - name: Set KSU and SUSFS for DEFCONFIG
         run: |
